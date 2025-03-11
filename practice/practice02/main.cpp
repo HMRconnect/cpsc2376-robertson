@@ -92,10 +92,14 @@ int main()
     }
     int currentBalance{};
     fin >> currentBalance;
+
+    while (true)
+    {
     std::cout << "Your current balance is: $" << currentBalance << std::endl;
     std::cout << "\nWould you like to: \n"
         << "1. Deposit Money? \n"
-        << "2. Withdraw Money? \n" << std::endl;
+        << "2. Withdraw Money? \n" 
+        << "3. Quit?\n" << std::endl;
     int userChoice = posInput();
     if (userChoice == 1)
     {
@@ -104,6 +108,11 @@ int main()
     else if (userChoice == 2)
     {
         withdraw(currentBalance);
+    }
+    else
+    {
+        break;
+    }
     }
 
 
