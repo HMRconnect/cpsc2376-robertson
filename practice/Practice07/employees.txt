@@ -1,0 +1,6 @@
+Salaried 00582 Red 7500
+Commission 00876 Orange 1500 1100 0.1
+Commission 00112 Yellow 1800 950 0.08
+Hourly 00311 Green 150 28
+Salaried 00787 Blue 6800
+Hourly 00040 Purple 210 25

@@ -1,0 +1,7 @@
+rectangle 10 6
+circle 3
+circle 8
+rectangle 5 5
+circle 11
+rectangle 2 12
+rectangle 11 9
