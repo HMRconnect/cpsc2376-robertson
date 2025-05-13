@@ -1,11 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <limits>
+#include <cmath>
 
-
-int posInput()
+double posInput()
 {
-    int inputVal{};
+    double inputVal{};
     while (inputVal <= 0)
     {
         std::cin >> inputVal;
@@ -41,10 +42,10 @@ void checkForFile()
     fin.close();
 }
 
-void deposit(int& balance)
+void deposit(double& balance)
 {
     std::cout << "How much would you like to deposit?" << std::endl;
-    int depositAmount = posInput();
+    double depositAmount = posInput();
     balance += depositAmount;
     std::ofstream fout{ "account_balance.txt" };
     if (!fout)
@@ -56,13 +57,12 @@ void deposit(int& balance)
     fout.close();
 
     std::cout << "$" << depositAmount << " deposited." << std::endl;
-    std::cout << "Your balance is now $" << balance << "." << std::endl;
 }
 
-void withdraw(int& balance)
+void withdraw(double& balance)
 {
     std::cout << "How much would you like to withdraw?" << std::endl;
-    int withdrawAmount = posInput();
+    double withdrawAmount = posInput();
     if (withdrawAmount > balance)
     {
         std::cout << "You cannot withdraw more than you have stored. You have $" << balance << "." << std::endl;
@@ -78,7 +78,19 @@ void withdraw(int& balance)
     fout << balance;
     fout.close();
     std::cout << "$" << withdrawAmount << " withdrawn." << std::endl;
-    std::cout << "Your balance is now $" << balance << "." << std::endl;
+}
+
+void printCurrentBalance(double balance)
+{
+    double centAmt = balance - floor(balance);
+    if (centAmt != 0)
+    {
+        std::cout << "Your current balance is: $" << balance << std::endl;
+    }
+    else
+    {
+        std::cout << "Your current balance is: $" << balance << ".00" << std::endl;
+    }
 }
 
 int main()
@@ -90,29 +102,35 @@ int main()
         std::cerr << "Error opening file\n";
         return 1;
     }
-    int currentBalance{};
+    double currentBalance{};
     fin >> currentBalance;
 
     while (true)
     {
-    std::cout << "Your current balance is: $" << currentBalance << std::endl;
-    std::cout << "\nWould you like to: \n"
-        << "1. Deposit Money? \n"
-        << "2. Withdraw Money? \n" 
-        << "3. Quit?\n" << std::endl;
-    int userChoice = posInput();
-    if (userChoice == 1)
-    {
-        deposit(currentBalance);
-    }
-    else if (userChoice == 2)
-    {
-        withdraw(currentBalance);
-    }
-    else
-    {
-        break;
-    }
+        printCurrentBalance(currentBalance);
+        std::cout << "\nWould you like to: \n"
+            << "1. Deposit Money? \n"
+            << "2. Withdraw Money? \n"
+            << "3. Quit?\n" << std::endl;
+        int userChoice = posInput();
+        if (userChoice == 1)
+        {
+            deposit(currentBalance);
+        }
+        else if (userChoice == 2)
+        {
+            withdraw(currentBalance);
+        }
+        else if (userChoice == 3)
+        {
+            std::cout << "Exiting program." << std::endl;
+            break;
+        }
+        else
+        {
+            std::cout << "invalid option." << std::endl;
+            continue;
+        }
     }
 
 
