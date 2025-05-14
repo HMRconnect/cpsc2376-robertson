@@ -56,53 +56,7 @@ int moveValidator()
 		board = emptyBoard;
 	}
 
-	void Game::printRules()
-	{
-		std::cout << "OTHELLO\n"
-			<< "-----------------------------------------------------\n"
-			<< "Rules:\n" << "- Players must take turns adding new Player each round, by choosing a space to place it in.\n"
-			<< "- Player 1 controls white, Player 2 controls black.\n"
-			<< "- Your goal is to convert as many Player to your color as possible, before the board fills up or no more legal moves are possible.\n"
-			<< "- You may place a piece such that it creates a vertical, horizontal or diagonal occupied line between it and another of your Player,"
-			<< " with the opposing player's Player in the middle.\n"
-			<< "- Any of the opposing player's Player between these two Player of yours will be converted to your color.\n"
-			<< "- Move position is chosen by entering the desired row and column number.\n"
-			<< "Good luck.\n" << "-----------------------------------------------------" << std::endl;
-	}
-
-	std::string Game::printPiece(const Player piece)
-	{
-		if (piece == Player::empty)
-		{
-			return "0";
-		}
-		else if (piece == Player::white)
-		{
-			return "W";
-		}
-		else if (piece == Player::black)
-		{
-			return "B";
-		}
-		else
-		{
-			return "X"; //Display error indicator
-		}
-	}
-
-	void Game::printBoard()
-	{
-		std::cout << "   0   1   2   3   4   5   6   7   \n";
-		for (int i{ 0 }; i < board.size(); i++)
-		{
-			std::cout << i << " ";
-			for (int j{ 0 }; j < board.at(i).size(); j++)
-			{
-				std::cout << "[" << printPiece(board.at(i).at(j)) << "] ";
-			}
-			std::cout << "\n";
-		}
-	}
+	
 
 	Player Game::getOpponent(Player player)
 	{
@@ -122,6 +76,8 @@ int moveValidator()
 	{
 		return row >= 0 && row < 8 && column >= 0 && column < 8;
 	}
+
+
 
 	//find pieces that can be converted in a direction depending on offset, return list
 	//should only be passed empty spaces
@@ -243,60 +199,25 @@ int moveValidator()
 		setColorCounts();
 	}
 
-	void Game::play()
+
+
+	void Game::play(Position pos)
 	{
-		setLegalMoves(Player::black);
-		setLegalMoves(Player::white);
-		if (whiteLegalMoveList.size() == 0 && blackLegalMoveList.size() == 0)
+		if (canPieceMove(pos, currentPlayer) == true)
 		{
-			std::cout << "There are no more legal moves remaining!" << std::endl;
-			gameStatus = finished;
+			//set selected spot to correct piece
+			board.at(pos.row).at(pos.column) = currentPlayer;
+			//convert pieces between to correct color
+			makeMove(pos);
+			//then end the while loop & return to main to reprint the board & call next turn
 			return;
 		}
-		if (currentPlayer == Player::white)
+		else
 		{
-			if (whiteLegalMoveList.size() == 0)
-			{
-				std::cout << "You have no legal moves! Your turn is skipped." << std::endl;
-				return;
-			}
+			std::cout << "That is not a legal move, please try again." << std::endl;
+			return;
 		}
-		if (currentPlayer == Player::black)
-		{
-			if (whiteLegalMoveList.size() == 0)
-			{
-				std::cout << "You have no legal moves! Your turn is skipped." << std::endl;
-				return;
-			}
-		}
-		while (true)
-		{
-			std::cout << "-----------------------------------------------\n"
-				<< "Player " << currentPlayer << " , it is your turn.\n"
-				<< "Where would you like to place your piece?" << std::endl;
-
-			Position nextPiece{};
-			std::cout << "Row number:";
-			nextPiece.row = moveValidator();
-			std::cout << "Column number:";
-			nextPiece.column = moveValidator();
-
-
-			if (canPieceMove(nextPiece, currentPlayer) == true)
-			{
-				//set selected spot to correct piece
-				board.at(nextPiece.row).at(nextPiece.column) = currentPlayer;
-				//convert pieces between to correct color
-				makeMove(nextPiece);
-				//then end the while loop & return to main to reprint the board & call next turn
-				return;
-			}
-			else
-			{
-				std::cout << "That is not a legal move, please try again." << std::endl;
-				continue;
-			}
-		}
+		
 	}
 
 	void Game::checkBoardFullness()
@@ -320,26 +241,240 @@ int moveValidator()
 		return gameStatus;
 	}
 
+	Player Game::getCurrentPlayer()
+	{
+		return currentPlayer;
+	}
+	
+	void Game::setCurrentPlayer(Player player)
+	{
+		currentPlayer = player;
+	}
+
 	void Game::setTurn(Player nextPlayer)
 	{
 		currentPlayer = nextPlayer;
 	}
 
-	void Game::checkWinner()
+
+
+
+	void Game::renderBoard(SDL_Renderer*& renderer)
 	{
+
+		//board background
+		SDL_SetRenderDrawColor(renderer, 51, 37, 16, 255);
+		SDL_RenderFillRect(renderer, &boardBorder);
+		SDL_SetRenderDrawColor(renderer, 12, 153, 31, 255);
+		SDL_RenderFillRect(renderer, &boardBack);
+
+		
+		int x{ 165 };
+		int y{ 65 };
+		for (int i{ 0 }; i < board.size(); i++)
+		{
+			
+			for (int j{ 0 }; j < board.at(i).size(); j++)
+			{
+				SDL_Rect boardTile{ x, y, 50, 50 };
+				SDL_SetRenderDrawColor(renderer, 50,50,50,50);
+				SDL_RenderFillRect(renderer, &boardTile);
+				x += 60;
+			}
+			x = 165;
+			y += 60;
+		}
+	}
+
+	void Game::renderPieces(SDL_Renderer*& renderer)
+	{
+		int x{ 190 };
+		int y{ 90 };
+		for (int i{ 0 }; i < board.size(); i++)
+		{
+			for (int j{ 0 }; j < board.at(i).size(); j++)
+			{
+				if (board.at(i).at(j) == Player::empty)
+				{
+					filledCircleRGBA(renderer, x, y, 20, 0, 0, 0, 0);
+				}
+				else if (board.at(i).at(j) == Player::white)
+				{
+					filledCircleRGBA(renderer, x, y, 20, 255, 255, 255, 255);
+				}
+				else if (board.at(i).at(j) == Player::black)
+				{
+					filledCircleRGBA(renderer, x, y, 20, 0, 0, 0, 255);
+				}
+				else
+				{
+					filledCircleRGBA(renderer, x, y, 20, 150, 150, 150, 255);
+				}
+				x += 60;
+			}
+			x = 190;
+			y += 60;
+		}
+	}
+
+	void Game::renderTopText(SDL_Renderer*& renderer, SDL_Window*& window, TTF_Font*& font, std::string textContent, SDL_Color color)
+	{
+
+		SDL_Surface* textSurface = TTF_RenderText_Solid(font, textContent.c_str(), color);
+		if (textSurface != nullptr)
+		{
+			SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+			if (textTexture != nullptr)
+			{
+				//rendered text position. the box you put the text in
+				SDL_Rect textRect{ 300, 10, textSurface->w, textSurface->h };
+				//render the text
+				//render copy cause you copy the text from the texture to the rect
+				//the nullptr means "i want the whole texture copied"
+				SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+				SDL_DestroyTexture(textTexture);
+			}
+			else
+			{
+				std::cerr << "SDL Text Texture Error: " << SDL_GetError() << std::endl;
+			}
+			SDL_FreeSurface(textSurface);
+
+		}
+		else
+		{
+			std::cerr << "SDL Text Surface Error: " << SDL_GetError() << std::endl;
+		}
+	}
+
+	void Game::renderBottomText(SDL_Renderer*& renderer, SDL_Window*& window, TTF_Font*& font, std::string textContent, SDL_Color color)
+	{
+		SDL_Surface* textSurface = TTF_RenderText_Solid(font, textContent.c_str(), color);
+		if (textSurface != nullptr)
+		{
+			SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+			if (textTexture != nullptr)
+			{
+				//rendered text position. the box you put the text in
+				SDL_Rect textRect{ 300, 560, textSurface->w, textSurface->h };
+				//render the text
+				//render copy cause you copy the text from the texture to the rect
+				//the nullptr means "i want the whole texture copied"
+				SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+				SDL_DestroyTexture(textTexture);
+			}
+			else
+			{
+				std::cerr << "SDL Text Texture Error: " << SDL_GetError() << std::endl;
+			}
+			SDL_FreeSurface(textSurface);
+
+		}
+		else
+		{
+			std::cerr << "SDL Text Surface Error: " << SDL_GetError() << std::endl;
+		}
+	}
+
+	void Game::renderWinScreen(SDL_Renderer*& renderer, SDL_Window*& window, TTF_Font*& font, std::string textContent, SDL_Color color)
+	{
+		SDL_Rect winBack{ 200,200,300,200 };
+		SDL_SetRenderDrawColor(renderer, 100, 100, 100, 100);
+		SDL_RenderFillRect(renderer, &winBack);
+
+		std::string winningPlayer{};
 		if (whiteCount > blackCount)
 		{
-			std::cout << "Player 1 is the winner!" << std::endl;
-
+			winningPlayer = "Winner: White";
 		}
 		else if (whiteCount < blackCount)
 		{
-			std::cout << "Player 2 is the winner" << std::endl;
-
+			winningPlayer = "Winner: Black";
 		}
 		else if (whiteCount == blackCount)
 		{
-			std::cout << "Somehow, it's a tie!" << std::endl;
+			winningPlayer = "Tie";
+		}
+		else
+		{
+			winningPlayer = " ";
+		}
+		
+		SDL_Surface* textSurface = TTF_RenderText_Solid_Wrapped(font, winningPlayer.c_str(), color, 300);
+		if (textSurface != nullptr)
+		{
+			SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+			if (textTexture != nullptr)
+			{
+				//rendered text position. the box you put the text in
+				SDL_Rect textRect{ 200, 200, 300,200 };
+				//render the text
+				//render copy cause you copy the text from the texture to the rect
+				//the nullptr means "i want the whole texture copied"
+				SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+				SDL_DestroyTexture(textTexture);
+			}
+			else
+			{
+				std::cerr << "SDL Text Texture Error: " << SDL_GetError() << std::endl;
+			}
+			SDL_FreeSurface(textSurface);
 
 		}
+		else
+		{
+			std::cerr << "SDL Text Surface Error: " << SDL_GetError() << std::endl;
+		}
+
+		
+
+	}
+
+	Position Game::buttonPressed(int mouseX, int mouseY)
+	{
+		Position buttonPos{};
+		int x{ 165 };
+		int y{ 65 };
+		int xmin{ 165 };
+		int xmax = xmin + 50;
+		int ymin{ 65 };
+		int ymax = ymin + 50;
+		for (int i{ 0 }; i < 8; i++)
+		{
+			for (int j{ 0 }; j < 8; j++)
+			{	
+				if (mouseX > xmin && mouseX < xmax && mouseY > ymin && mouseY < ymax)
+				{
+					return buttonPos;
+				}
+				buttonPos.column++;
+				x += 60;
+				xmin = x;
+				xmax = xmin + 50;
+			}
+			buttonPos.row++;
+			buttonPos.column = 0;
+			x = 165;
+			xmin = x;
+			xmax = xmin + 50;
+			y += 60;
+			ymin = y;
+			ymax = ymin + 50;
+		}
+		return { 0,0 };
+	}
+
+	std::vector<MoveInfo> Game::getwhiteLegalMoveList()
+	{
+		return whiteLegalMoveList;
+	}
+
+	std::vector<MoveInfo> Game::getblackLegalMoveList()
+	{
+		return blackLegalMoveList;
+	}
+
+	void Game::setStatus(GameStatus status)
+	{
+		gameStatus = status;
 	}

@@ -2,6 +2,9 @@
 #include <array>
 #include <vector>
 #include <iostream>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 
 enum Player
 {
@@ -45,6 +48,10 @@ private:
 	Player winner{ Player::empty };
 	std::vector<MoveInfo> whiteLegalMoveList{};
 	std::vector<MoveInfo> blackLegalMoveList{};
+	SDL_Rect boardBack{ 150,50,500,500 };
+	SDL_Rect boardBorder{ 145,45,510,510 };
+	
+
 public:
 	Game();
 
@@ -52,17 +59,12 @@ public:
 	//had trouble initializing it correctly in constructor so copied from prev ver
 	void makeBoard();
 
-	void printRules();
-
-	std::string printPiece(const Player piece);
-
-	void printBoard();
-
 	Player getOpponent(Player player);
 
 
 	//check if its inside the board still
 	bool isInsideBoard(int row, int column);
+
 
 	//find pieces that can be converted in a direction depending on offset, return list
 	//should only be passed empty spaces
@@ -82,13 +84,37 @@ public:
 
 	void makeMove(Position position);
 
-	void play();
+
+
+	void play(Position pos);
 
 	void checkBoardFullness();
 
 	GameStatus getStatus();
 
+	Player getCurrentPlayer();
+
+	void setCurrentPlayer(Player player);
+
 	void setTurn(Player nextPlayer);
 
-	void checkWinner();
+	Player checkWinner();
+
+	void renderBoard(SDL_Renderer*& renderer);
+
+	void renderPieces(SDL_Renderer*& renderer);
+
+	void renderTopText(SDL_Renderer*& renderer, SDL_Window*& window,  TTF_Font*& font, std::string textContent, SDL_Color color);
+
+	void renderBottomText(SDL_Renderer*& renderer, SDL_Window*& window, TTF_Font*& font, std::string textContent, SDL_Color color);
+
+	void renderWinScreen(SDL_Renderer*& renderer, SDL_Window*& window, TTF_Font*& font, std::string textContent, SDL_Color color);
+
+	Position buttonPressed(int mouseX, int mouseY);
+
+	std::vector<MoveInfo> getwhiteLegalMoveList();
+
+	std::vector<MoveInfo> getblackLegalMoveList();
+
+	void setStatus(GameStatus status);
 };
